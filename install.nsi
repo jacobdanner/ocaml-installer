@@ -322,7 +322,13 @@ Section "Cygwin" SecCygwin
     SetErrors
     DetailPrint "$0"
   ok:
-
+  ; add cygwin --proxy settings here
+  ; references, unless there is a way to get the proxy from NSISdl script
+  ; http://cygwin.com/faq/faq.setup.html#faq.setup.cli
+  ;  #Win32::Registry::HKEY_CURRENT_USER.open(
+  ;  "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\") do |reg|
+  ;    proxy_uri = reg.read("ProxyServer")
+  ; look at nsisdl script 
   ExecWait "$DESKTOP\cygwin-setup.exe --quiet-mode \
     --local-package-dir=c:\cygtmp\ \
     --site=http://cygwin.cict.fr \
