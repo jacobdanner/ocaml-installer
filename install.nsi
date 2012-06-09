@@ -317,19 +317,39 @@ Section "Cygwin" SecCygwin
   NSISdl::download ${CYGWIN_URL} "$DESKTOP\cygwin-setup.exe"
 
   Pop $0
-  StrCmp $0 "success" ok
+  ${IfNot} $0 "success"
     MessageBox MB_OK "Couldn't download cygwin's setup.exe: $0"
     SetErrors
     DetailPrint "$0"
-  ok:
+  ${EndIf}
 
-  ExecWait "$DESKTOP\cygwin-setup.exe --quiet-mode \
-    --local-package-dir=c:\cygtmp\ \
-    --site=http://cygwin.cict.fr \
-    --packages=curl,make,mingw64-i686-gcc-g++,mingw64-i686-gcc,patch,rlwrap,libreadline6,diffutils,wget,vim \
-    >NUL 2>&1"
-
-  end:
+  ; add cygwin --proxy settings here
+  ; references, unless there is a way to get the proxy from NSISdl script
+  ; http://cygwin.com/faq/faq.setup.html#faq.setup.cli
+  ;  #Win32::Registry::HKEY_CURRENT_USER
+  ;  "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\" "ProxyServer"
+  ; Add the following plugin
+  ; http://nsis.sourceforge.net/ProxySettings
+  
+  Var px 
+  ProxySettings::GetConnectionProxyByProtocol "http://cygwin.cict.fr"
+  Pop $0
+  ${If} $0 != ""
+    # read the value from the registry into the $0 register
+    # readRegStr $0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" CurrentVersion
+    ExecWait "$INSTDIR\cygwin-setup.exe --quiet-mode \
+      --local-package-dir=$INSTDIR\cygtmp\ \
+      --site=http://cygwin.cict.fr \
+      --packages=curl,make,mingw64-i686-gcc-g++,mingw64-i686-gcc,patch,rlwrap,libreadline6,diffutils,wget,vim \
+      >NUL 2>&1"
+  ${Else} ; TODO: could/should check for other errors
+    ExecWait "$INSTDIR\cygwin-setup.exe --quiet-mode \
+      --local-package-dir=$INSTDIR\cygtmp\ \
+      --proxy=$0 \
+      --site=http://cygwin.cict.fr \
+      --packages=curl,make,mingw64-i686-gcc-g++,mingw64-i686-gcc,patch,rlwrap,libreadline6,diffutils,wget,vim \
+      >NUL 2>&1"
+  ${EndIf}
 
 SectionEnd
 
